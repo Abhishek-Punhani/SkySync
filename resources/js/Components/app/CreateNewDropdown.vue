@@ -21,20 +21,21 @@
             >
                 <div class="px-1 py-1">
                     <MenuItem v-slot="{ active }">
-                        <ResponsiveNavLink
-                            href="/"
+                        <a
+                            href="#"
                             :class="[
                                 active
                                     ? 'bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white'
                                     : 'text-gray-700 dark:text-gray-300',
                                 'block px-4 py-2 text-sm',
                             ]"
+                            @click.prevent="showCreateFolderModal"
                         >
                             New Folder
-                        </ResponsiveNavLink>
+                        </a>
                     </MenuItem>
                     <MenuItem v-slot="{ active }">
-                        <ResponsiveNavLink
+                        <a
                             href="/"
                             method="post"
                             as="button"
@@ -46,7 +47,7 @@
                             ]"
                         >
                             Upload Files
-                        </ResponsiveNavLink>
+                        </a>
                     </MenuItem>
                     <MenuItem v-slot="{ active }">
                         <ResponsiveNavLink
@@ -67,11 +68,20 @@
             </MenuItems>
         </transition>
     </Menu>
+    <CreateFolderModal v-model="createFolderModel" />
 </template>
 
 <script setup>
 // Imports
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
+import CreateFolderModal from './CreateFolderModal.vue';
+import { ref } from 'vue';
+
+const createFolderModel = ref(false);
+
+function showCreateFolderModal() {
+    createFolderModel.value = true;
+}
 </script>
 <style scoped></style>

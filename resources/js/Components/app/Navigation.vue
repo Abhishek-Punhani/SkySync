@@ -1,6 +1,6 @@
 <template>
     <nav class="min-w-[200px] p-5 dark:text-gray-200">
-        <Link href="/">
+        <Link :href="route('dashboard')">
             <ApplicationLogo
                 class="block h-9 w-auto fill-current text-gray-800 dark:text-white"
             />
@@ -10,8 +10,12 @@
         <div class="px-3 py-8">
             <CreateNewDropdown />
 
-            <div class="py-3">
-                <NavLink href="/">My Files</NavLink>
+            <div class="mt-5 flex flex-col gap-y-2 py-3">
+                <NavLink
+                    :href="route('myFiles')"
+                    :active="$page.url === '/my-files'"
+                    >My Files</NavLink
+                >
                 <NavLink href="/">Shared with me</NavLink>
                 <NavLink href="/">Shared by me</NavLink>
                 <NavLink href="/">Trash</NavLink>
@@ -30,14 +34,4 @@ import NavLink from '@/Components/NavLink.vue';
 // Uses
 
 // Refs
-
-// Props & Emit
-
-// Computed
-
-// Methods
-
-// Hooks
 </script>
-
-<style scoped></style>

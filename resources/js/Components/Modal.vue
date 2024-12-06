@@ -16,7 +16,7 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(['close']);
+const emit = defineEmits(['show', 'hide', 'close']);
 const dialog = ref();
 const showSlot = ref(props.show);
 
@@ -24,12 +24,14 @@ watch(
     () => props.show,
     () => {
         if (props.show) {
+            emit('show');
             document.body.style.overflow = 'hidden';
             showSlot.value = true;
 
             dialog.value?.showModal();
         } else {
-            document.body.style.overflow = '';
+            emit('hide');
+            document.body.style.overflow = null;
 
             setTimeout(() => {
                 dialog.value?.close();
@@ -112,7 +114,7 @@ const maxWidthClass = computed(() => {
             >
                 <div
                     v-show="show"
-                    class="mb-6 transform overflow-hidden rounded-lg bg-white shadow-xl transition-all sm:mx-auto sm:w-full dark:bg-gray-800"
+                    class="mb-6 transform overflow-hidden rounded-lg bg-white shadow-xl transition-all dark:bg-gray-800 sm:mx-auto sm:w-full"
                     :class="maxWidthClass"
                 >
                     <slot v-if="showSlot" />

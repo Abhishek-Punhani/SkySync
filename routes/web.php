@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\Filecontroller;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -14,6 +15,11 @@ Route::get('/', function () {
     ]);
 });
 
+Route :: controller(Filecontroller::class)
+    ->middleware(['auth','verified']) ->group(function(){
+        Route::get('/my-files', 'myFiles')->name('myFiles');
+        Route::post('/folders/create', 'createFolder')->name('folders.create');
+    });
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
