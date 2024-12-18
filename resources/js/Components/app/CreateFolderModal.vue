@@ -1,7 +1,9 @@
 <template>
     <modal :show="modelValue" @show="onShow" max-width="sm">
         <div class="p-6">
-            <h2 class="text-lg font-medium text-gray-900">Create New Folder</h2>
+            <h2 class="text-lg font-medium text-gray-900 dark:text-gray-200">
+                Create New Folder
+            </h2>
             <div class="mt-6">
                 <InputLabel
                     for="folderName"
@@ -46,7 +48,7 @@ import Modal from '@/Components/Modal.vue';
 import TextInput from '@/Components/TextInput.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
-import { useForm, usePage } from '@inertiajs/vue3';
+import { useForm } from '@inertiajs/vue3';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import { nextTick, ref } from 'vue';
@@ -57,7 +59,6 @@ const form = useForm({
     name: '',
     parent_id: null,
 });
-const page = usePage();
 
 // Refs
 const folderNameInput = ref(null);
@@ -76,8 +77,9 @@ function onShow() {
 }
 
 function createFolder() {
-    form.parent_id = page.props.folder.id;
-    // const name = form.name;
+    if (!form.parent_id) {
+        form.parent_id = null;
+    }
     form.post(route('folder.create'), {
         preserveScroll: true,
         onSuccess: () => {
@@ -86,7 +88,10 @@ function createFolder() {
             // showSuccessNotification(`The folder "${name}" was created`);
             form.reset();
         },
-        onError: () => folderNameInput.value.focus(),
+        onError: (e) => {
+            folderNameInput.value.focus();
+            console.log(e);
+        },
     });
 }
 

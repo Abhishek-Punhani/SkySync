@@ -53,6 +53,6 @@ class RegisteredUserController extends Controller
         $file->makeRoot()->save();
         
 
-        return redirect(route('dashboard', absolute: false));
+        return redirect(route('myFiles', absolute: false));
     }
 }

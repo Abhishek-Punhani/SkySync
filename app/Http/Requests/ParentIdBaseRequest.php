@@ -34,6 +34,7 @@ class ParentIdBaseRequest extends FormRequest
     {
         return [
             'parent_id' => [
+                'nullable',
                 Rule::exists(File::class, 'id')
                     ->where(function (Builder $query) {
                         return $query

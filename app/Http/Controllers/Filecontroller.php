@@ -3,27 +3,42 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreFolderRequest;
+use App\Http\Resources\FileResource;
 use App\Models\File;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia; 
 
 class Filecontroller extends Controller
 {
     public function myFiles(){
-        return Inertia::render(component: 'MyFiles');
+        $folder=$this->getRoot();
+        $files=File::query()
+        ->where('parent_id',$folder->id)
+        ->where('created_by',Auth::id())
+        ->orderBy('is_folder','desc')
+        ->orderBy('created_at','desc')
+        ->paginate(10);
+
+        $files=FileResource::collection($files);
+        return Inertia::render('MyFiles', compact('files'));
     }
      public function createFolder(StoreFolderRequest $request){
        $data=$request->validated();
-        $parent=$request->parent;
-        if(!$parent){
-            $parent=$this->getRoot();
-        }
+      $parent = $request->parent_id ? File::find($request->parent_id) : $this->getRoot();
 
-        $file=new File();
-        $file->isFolder=1;
-        $file->name=$data['name'];
-        $parent->appendNode($file);
+    if (!$parent) {
+        return redirect()->back()->withErrors(['parent_id' => 'Invalid parent folder.']);
+    }
+
+         $file = new File();
+    $file->is_folder = 1;
+    $file->name = $data['name'];
+    $file->created_by = Auth::id();
+    $parent->appendNode($file);
+        
+
+     return redirect()->route('myFiles')->with('success', 'Folder created successfully.');
+
     }
 
     public function getRoot(){

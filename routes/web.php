@@ -18,7 +18,7 @@ Route::get('/', function () {
 Route :: controller(Filecontroller::class)
     ->middleware(['auth','verified']) ->group(function(){
         Route::get('/my-files', 'myFiles')->name('myFiles');
-        Route::post('/folders/create', 'createFolder')->name('folders.create');
+        Route::post('/folder/create', 'createFolder')->name('folder.create');
     });
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
