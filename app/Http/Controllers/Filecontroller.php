@@ -29,8 +29,11 @@ class Filecontroller extends Controller
     if (!$parent) {
         return redirect()->back()->withErrors(['parent_id' => 'Invalid parent folder.']);
     }
+    if ($parent->children()->where('name', $data['name'])->exists()) {
+        return redirect()->back()->withErrors(['name' => 'A folder with the same name already exists.']);
+    }
 
-         $file = new File();
+    $file = new File();
     $file->is_folder = 1;
     $file->name = $data['name'];
     $file->created_by = Auth::id();

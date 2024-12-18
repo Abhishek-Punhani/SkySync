@@ -64,8 +64,9 @@ const form = useForm({
 const folderNameInput = ref(null);
 
 // Props & Emit
-const { modelValue } = defineProps({
+const { modelValue, closeDropdown } = defineProps({
     modelValue: Boolean,
+    closeDropdown: Function,
 });
 const emit = defineEmits(['update:modelValue']);
 
@@ -87,6 +88,7 @@ function createFolder() {
             // Show success notification
             // showSuccessNotification(`The folder "${name}" was created`);
             form.reset();
+            closeDropdown();
         },
         onError: (e) => {
             folderNameInput.value.focus();

@@ -2,6 +2,7 @@
     <Menu as="div" class="relative inline-block text-left">
         <div>
             <MenuButton
+                ref="menuButtonRef"
                 class="flex w-full justify-center gap-x-1.5 rounded-md bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-800 ring-1 ring-inset ring-gray-800 hover:bg-opacity-30 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-300 dark:hover:bg-opacity-30"
             >
                 Create New
@@ -68,7 +69,10 @@
             </MenuItems>
         </transition>
     </Menu>
-    <CreateFolderModal v-model="createFolderModel" />
+    <CreateFolderModal
+        v-model="createFolderModel"
+        :closeDropdown="clickMenuButton"
+    />
 </template>
 
 <script setup>
@@ -82,6 +86,13 @@ const createFolderModel = ref(false);
 
 function showCreateFolderModal() {
     createFolderModel.value = true;
+}
+const menuButtonRef = ref(null);
+
+function clickMenuButton() {
+    if (menuButtonRef.value) {
+        menuButtonRef.value.$el.click();
+    }
 }
 </script>
 <style scoped></style>
