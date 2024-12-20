@@ -41,74 +41,77 @@
                 </li>
             </ol>
         </nav>
-        <table class="min-w-full border dark:border-gray-800">
-            <thead
-                class="border-b bg-gray-100 dark:border-gray-700 dark:bg-gray-800"
-            >
-                <tr>
-                    <th
-                        class="px-6 py-4 text-left text-sm font-medium text-gray-900 dark:text-gray-100"
-                    >
-                        Name
-                    </th>
-                    <th
-                        class="px-6 py-4 text-left text-sm font-medium text-gray-900 dark:text-gray-100"
-                    >
-                        Owner
-                    </th>
-                    <th
-                        class="px-6 py-4 text-left text-sm font-medium text-gray-900 dark:text-gray-100"
-                    >
-                        Last Modified
-                    </th>
-                    <th
-                        class="px-6 py-4 text-left text-sm font-medium text-gray-900 dark:text-gray-100"
-                    >
-                        Size
-                    </th>
-                </tr>
-            </thead>
-            <tbody v-if="files.data.length">
-                <tr
-                    v-for="file of files.data"
-                    :key="file.id"
-                    @dblclick="openFolder(file)"
-                    class="cursor-pointer border-b bg-white transition duration-300 ease-in-out hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-700"
+        <div class="flex-1 overflow-auto">
+            <table class="min-w-full border dark:border-gray-800">
+                <thead
+                    class="border-b bg-gray-100 dark:border-gray-700 dark:bg-gray-800"
                 >
-                    <td
-                        class="flex items-center justify-start gap-x-3 whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100"
+                    <tr>
+                        <th
+                            class="px-6 py-4 text-left text-sm font-medium text-gray-900 dark:text-gray-100"
+                        >
+                            Name
+                        </th>
+                        <th
+                            class="px-6 py-4 text-left text-sm font-medium text-gray-900 dark:text-gray-100"
+                        >
+                            Owner
+                        </th>
+                        <th
+                            class="px-6 py-4 text-left text-sm font-medium text-gray-900 dark:text-gray-100"
+                        >
+                            Last Modified
+                        </th>
+                        <th
+                            class="px-6 py-4 text-left text-sm font-medium text-gray-900 dark:text-gray-100"
+                        >
+                            Size
+                        </th>
+                    </tr>
+                </thead>
+                <tbody v-if="allFiles.data.length">
+                    <tr
+                        v-for="file of allFiles.data"
+                        :key="file.id"
+                        @dblclick="openFolder(file)"
+                        class="cursor-pointer border-b bg-white transition duration-300 ease-in-out hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-700"
                     >
-                        <FileIcon :file="file" />
-                        <span class="p-1">{{ file.name }}</span>
-                    </td>
-                    <td
-                        class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100"
-                    >
-                        {{ file.owner }}
-                    </td>
-                    <td
-                        class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100"
-                    >
-                        {{ file.updated_at }}
-                    </td>
-                    <td
-                        class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100"
-                    >
-                        {{ file.size }}
-                    </td>
-                </tr>
-            </tbody>
-            <tbody v-else>
-                <tr>
-                    <td
-                        class="text-md px-6 py-4 text-center font-medium text-gray-900 dark:text-gray-100"
-                        colspan="4"
-                    >
-                        No files found
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+                        <td
+                            class="flex items-center justify-start gap-x-3 whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100"
+                        >
+                            <FileIcon :file="file" />
+                            <span class="p-1">{{ file.name }}</span>
+                        </td>
+                        <td
+                            class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100"
+                        >
+                            {{ file.owner }}
+                        </td>
+                        <td
+                            class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100"
+                        >
+                            {{ file.updated_at }}
+                        </td>
+                        <td
+                            class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100"
+                        >
+                            {{ file.size }}
+                        </td>
+                    </tr>
+                </tbody>
+                <tbody v-else>
+                    <tr>
+                        <td
+                            class="text-md px-6 py-4 text-center font-medium text-gray-900 dark:text-gray-100"
+                            colspan="4"
+                        >
+                            No files found
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div ref="loadMoreIntersect"></div>
+        </div>
     </AuthenticatedLayout>
 </template>
 
@@ -117,14 +120,36 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Link, router } from '@inertiajs/vue3';
 import { HomeIcon } from '@heroicons/vue/20/solid';
 import FileIcon from '@/Components/app/FileIcon.vue';
+import { onMounted, ref } from 'vue';
+import { defineProps } from 'vue';
+import { getFiles } from '@/utils/http';
 
-const { files } = defineProps({
+const loadMoreIntersect=ref(null)
+
+
+function loadMore(){
+    console.log('load more')
+    if(allFiles.value.next==null) return;
+
+    getFiles(allFiles.value.next).then(res => {
+        allFiles.value.data = [...allFiles.value.data, ...res.data];
+        allFiles.value.next = res.links.next;
+    });
+}
+
+const props= defineProps({
     files: {
         type: Object,
         required: true,
     },
     folder: Object,
     ancestors: Object,
+});
+
+
+const allFiles = ref({
+    data:props.files.data,
+    next:props.files.links.next,
 });
 const openFolder = (file) => {
     if (!file.is_folder) {
@@ -133,4 +158,12 @@ const openFolder = (file) => {
 
     router.visit(`/my-files/${file.path}`);
 };
+onMounted(() => {
+    const observer = new IntersectionObserver((entries) => entries.forEach(entry => entry.isIntersecting && loadMore()), {
+        rootMargin: '-250px 0px 0px 0px'
+    })
+
+    observer.observe(loadMoreIntersect.value)
+})
+
 </script>

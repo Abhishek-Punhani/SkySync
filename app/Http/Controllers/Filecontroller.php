@@ -7,8 +7,8 @@ use App\Http\Requests\StoreFolderRequest;
 use App\Http\Resources\FileResource;
 use App\Models\File;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Request;
 use Inertia\Inertia;
+use Illuminate\Http\Request;
 
 class Filecontroller extends Controller
 {

@@ -77,6 +77,10 @@ const uploadFiles = (files) => {
             }
             emitter.emit('show-error', msg);
         },
+        onFinished: () => {
+            fileUploadForm.reset();
+            fileUploadForm.clearErrors();
+        },
     });
 };
 const handleDrop = (e) => {
