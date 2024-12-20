@@ -37,12 +37,28 @@ import SearchForm from '@/Components/app/SearchForm.vue';
 import UserSettingsComponent from '@/Components/app/UserSettingsComponent.vue';
 import DarkModeToggle from '@/Components/DarkModeToggle.vue';
 import { emitter } from '@/event-bus.js';
+import { useForm, usePage } from '@inertiajs/vue3';
 import { ref, onMounted } from 'vue';
+
+const page = usePage();
 
 const dragOver = ref(false);
 
+const fileUploadForm = useForm({
+    files: [],
+    parent_id: null,
+    relative_paths: [],
+});
+
 const uploadFiles = (files) => {
-    console.log(files);
+    fileUploadForm.parent_id = page.props.folder.id;
+    fileUploadForm.files = files;
+    fileUploadForm.relative_paths = [...files].map(
+        (file) => file.webkitRelativePath,
+    );
+
+    console.log(fileUploadForm);
+    fileUploadForm.post(route('file.store'));
 };
 const handleDrop = (e) => {
     dragOver.value = false;

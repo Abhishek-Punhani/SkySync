@@ -26,12 +26,18 @@
 
 <script setup>
 // Imports
+import { emitter } from '@/event-bus';
 import { MenuItem } from '@headlessui/vue';
 import { ref } from 'vue';
 const inputref = ref(null);
 
 function openInput() {
     inputref.value.click();
+}
+
+function onChange(e) {
+    console.log(e.target.files);
+    emitter.emit('file-upload', e.target.files);
 }
 </script>
 
