@@ -76,9 +76,10 @@
                     class="cursor-pointer border-b bg-white transition duration-300 ease-in-out hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-700"
                 >
                     <td
-                        class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100"
+                        class="flex items-center justify-start gap-x-3 whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100"
                     >
-                        {{ file.name }}
+                        <FileIcon :file="file" />
+                        <span class="p-1">{{ file.name }}</span>
                     </td>
                     <td
                         class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100"
@@ -115,6 +116,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Link, router } from '@inertiajs/vue3';
 import { HomeIcon } from '@heroicons/vue/20/solid';
+import FileIcon from '@/Components/app/FileIcon.vue';
 
 const { files } = defineProps({
     files: {

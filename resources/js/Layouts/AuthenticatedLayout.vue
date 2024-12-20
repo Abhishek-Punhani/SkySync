@@ -29,6 +29,8 @@
             </template>
         </main>
     </div>
+    <ErrorDialog />
+    <FormProgress :form="fileUploadForm" />
 </template>
 
 <script setup>
@@ -39,6 +41,8 @@ import DarkModeToggle from '@/Components/DarkModeToggle.vue';
 import { emitter } from '@/event-bus.js';
 import { useForm, usePage } from '@inertiajs/vue3';
 import { ref, onMounted } from 'vue';
+import FormProgress from '@/Components/app/FormProgress.vue';
+import ErrorDialog from '@/Components/app/ErrorDialog.vue';
 
 const page = usePage();
 
@@ -58,7 +62,22 @@ const uploadFiles = (files) => {
     );
 
     console.log(fileUploadForm);
-    fileUploadForm.post(route('file.store'));
+    fileUploadForm.post(route('file.store'), {
+        preserveScroll: true,
+        onSuccess: () => {
+            fileUploadForm.reset();
+        },
+        onError: (errors) => {
+            let msg = '';
+            if (Object.keys(errors).length > 0) {
+                msg = errors[Object.keys(errors)[0]];
+            } else {
+                // eslint-disable-next-line
+                msg = 'Error during file upload , Please Try Again Later !';
+            }
+            emitter.emit('show-error', msg);
+        },
+    });
 };
 const handleDrop = (e) => {
     dragOver.value = false;

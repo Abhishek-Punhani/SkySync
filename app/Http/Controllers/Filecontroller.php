@@ -7,11 +7,12 @@ use App\Http\Requests\StoreFolderRequest;
 use App\Http\Resources\FileResource;
 use App\Models\File;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Request;
 use Inertia\Inertia;
 
 class Filecontroller extends Controller
 {
-    public function myFiles(string $folder = null)
+    public function myFiles(Request $request, string $folder = null)
     {
         if ($folder) {
             $folder = File::query()->where('created_by', Auth::id())
@@ -27,6 +28,11 @@ class Filecontroller extends Controller
             ->paginate(10);
 
         $files = FileResource::collection($files);
+
+        if ($request->wantsJson()) {
+            return response()->json($files);
+        }
+
         $ancestors = FileResource::collection([...$folder->ancestors, $folder]);
         $folder = new FileResource($folder);
         return Inertia::render('MyFiles', compact('files', 'folder', 'ancestors'));
