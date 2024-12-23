@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\DestroyFilesRequest;
 use App\Http\Requests\StoreFileRequest;
 use App\Http\Requests\StoreFolderRequest;
 use App\Http\Resources\FileResource;
@@ -14,6 +15,7 @@ class Filecontroller extends Controller
 {
     public function myFiles(Request $request, string $folder = null)
     {
+
         if ($folder) {
             $folder = File::query()->where('created_by', Auth::id())
                 ->where('path', $folder)->firstOrFail();
@@ -100,6 +102,28 @@ class Filecontroller extends Controller
         }
     }
 
+    public function destroy(DestroyFilesRequest $request)
+    {
+        $data = $request->validated();
+        $parent = $request->parent;
+        $user = Auth::user();
+
+        if ($data['all']) {
+            $children = $parent->children;
+            foreach ($children as $child) {
+                $child->delete();
+            }
+        } else {
+            foreach ($data['ids'] ?? [] as $id) {
+                $file = File::find($id);
+                if ($file) {
+                    $file->delete();
+                }
+            }
+        }
+
+        return to_route('myFiles', ['folder' => $parent->path]);
+    }
     /**
      *
      *

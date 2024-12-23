@@ -40,6 +40,13 @@
                     </div>
                 </li>
             </ol>
+            <div>
+                <DeleteFilesButton
+                    :delete-all="allselected"
+                    :delete-ids="selectedIds"
+                    @delete="onDelete"
+                />
+            </div>
         </nav>
         <div class="flex-1 overflow-auto">
             <table class="min-w-full border dark:border-gray-800">
@@ -47,6 +54,14 @@
                     class="border-b bg-gray-100 dark:border-gray-700 dark:bg-gray-800"
                 >
                     <tr>
+                        <th
+                            class="w-[30px] max-w-[30px] px-6 py-4 text-left text-sm font-medium text-gray-900 dark:text-gray-100"
+                        >
+                            <Checkbox
+                                @change="toggleSelectAll"
+                                v-model:checked="allselected"
+                            />
+                        </th>
                         <th
                             class="px-6 py-4 text-left text-sm font-medium text-gray-900 dark:text-gray-100"
                         >
@@ -73,9 +88,24 @@
                     <tr
                         v-for="file of allFiles.data"
                         :key="file.id"
+                        @click="toggleFileSelect(file)"
                         @dblclick="openFolder(file)"
-                        class="cursor-pointer border-b bg-white transition duration-300 ease-in-out hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-700"
+                        class="cursor-pointer border-b transition duration-300 ease-in-out hover:bg-blue-100 dark:border-gray-700 dark:hover:bg-gray-700"
+                        :class="
+                            selectedFiles[file.id] || allselected
+                                ? 'bg-blue-100 dark:bg-gray-700'
+                                : 'bg-white dark:bg-gray-900'
+                        "
                     >
+                        <td
+                            class="w-[30px] max-w-[30px] gap-x-3 whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100"
+                        >
+                            <Checkbox
+                                @change="($event) => ToggleCheckbox(file)"
+                                v-model="selectedFiles[file.id]"
+                                :checked="selectedFiles[file.id] || allselected"
+                            />
+                        </td>
                         <td
                             class="flex items-center justify-start gap-x-3 whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100"
                         >
@@ -120,24 +150,13 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Link, router } from '@inertiajs/vue3';
 import { HomeIcon } from '@heroicons/vue/20/solid';
 import FileIcon from '@/Components/app/FileIcon.vue';
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, onUpdated, ref } from 'vue';
 import { defineProps } from 'vue';
 import { getFiles } from '@/utils/http';
-
-const loadMoreIntersect=ref(null)
-
-
-function loadMore(){
-    console.log('load more')
-    if(allFiles.value.next==null) return;
-
-    getFiles(allFiles.value.next).then(res => {
-        allFiles.value.data = [...allFiles.value.data, ...res.data];
-        allFiles.value.next = res.links.next;
-    });
-}
-
-const props= defineProps({
+import Checkbox from '@/Components/Checkbox.vue';
+import { all } from 'axios';
+import DeleteFilesButton from '@/Components/app/DeleteFilesButton.vue';
+const props = defineProps({
     files: {
         type: Object,
         required: true,
@@ -146,11 +165,62 @@ const props= defineProps({
     ancestors: Object,
 });
 
-
 const allFiles = ref({
-    data:props.files.data,
-    next:props.files.links.next,
+    data: props.files.data,
+    next: props.files.links.next,
 });
+const loadMoreIntersect = ref(null);
+const allselected = ref(false);
+const selectedFiles = ref({});
+
+const selectedIds = computed(() =>
+    Object.entries(selectedFiles.value)
+        .filter((a) => a[1])
+        .map((a) => a[0]),
+);
+
+function toggleSelectAll() {
+    allFiles.value.data.forEach((file) => {
+        selectedFiles.value[file.id] = allselected.value;
+    });
+}
+
+function toggleFileSelect(file) {
+    if (selectedFiles.value[file.id])
+        selectedFiles.value[file.id] = !selectedFiles.value[file.id];
+    else selectedFiles.value[file.id] = true;
+
+    ToggleCheckbox(file);
+}
+
+function ToggleCheckbox(file) {
+    if (!selectedFiles.value[file.id]) {
+        allselected.value = false;
+    } else {
+        let checked = true;
+        for (const file of allFiles.value.data) {
+            if (!selectedFiles.value[file.id]) {
+                checked = false;
+                break;
+            }
+        }
+        allselected.value = checked;
+    }
+}
+
+function loadMore() {
+    console.log('load more');
+    if (allFiles.value.next == null) return;
+
+    getFiles(allFiles.value.next).then((res) => {
+        allFiles.value.data = [...allFiles.value.data, ...res.data];
+        allFiles.value.next = res.links.next;
+    });
+}
+function onDelete() {
+    allselected.value = false;
+    selectedFiles.value = {};
+}
 const openFolder = (file) => {
     if (!file.is_folder) {
         return;
@@ -158,12 +228,22 @@ const openFolder = (file) => {
 
     router.visit(`/my-files/${file.path}`);
 };
-onMounted(() => {
-    const observer = new IntersectionObserver((entries) => entries.forEach(entry => entry.isIntersecting && loadMore()), {
-        rootMargin: '-250px 0px 0px 0px'
-    })
 
-    observer.observe(loadMoreIntersect.value)
+onUpdated(() => {
+    allFiles.value = {
+        data: props.files.data,
+        next: props.files.links.next
+    }
 })
+onMounted(() => {
+    const observer = new IntersectionObserver(
+        (entries) =>
+            entries.forEach((entry) => entry.isIntersecting && loadMore()),
+        {
+            rootMargin: '-250px 0px 0px 0px',
+        },
+    );
 
+    observer.observe(loadMoreIntersect.value);
+});
 </script>
