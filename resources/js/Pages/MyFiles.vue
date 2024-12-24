@@ -41,7 +41,11 @@
                 </li>
             </ol>
             <div>
-                <DownloadFilesButton :all="allselected" :ids="selectedIds" class="mr-2" />
+                <DownloadFilesButton
+                    :all="allselected"
+                    :ids="selectedIds"
+                    class="mr-2"
+                />
                 <DeleteFilesButton
                     :delete-all="allselected"
                     :delete-ids="selectedIds"
@@ -234,9 +238,9 @@ const openFolder = (file) => {
 onUpdated(() => {
     allFiles.value = {
         data: props.files.data,
-        next: props.files.links.next
-    }
-})
+        next: props.files.links.next,
+    };
+});
 onMounted(() => {
     const observer = new IntersectionObserver(
         (entries) =>
