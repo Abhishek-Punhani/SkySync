@@ -52,6 +52,11 @@ class Filecontroller extends Controller
             ->orderBy('deleted_at', 'desc')
             ->paginate(10);
 
+        if ($request->wantsJson()) {
+            return response()->json($files);
+        }
+
+
         return Inertia::render('Trash', compact('files'));
     }
     public function createFolder(StoreFolderRequest $request)
