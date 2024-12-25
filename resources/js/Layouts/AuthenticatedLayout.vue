@@ -31,6 +31,7 @@
     </div>
     <ErrorDialog />
     <FormProgress :form="fileUploadForm" />
+    <Notification />
 </template>
 
 <script setup>
@@ -43,6 +44,7 @@ import { useForm, usePage } from '@inertiajs/vue3';
 import { ref, onMounted } from 'vue';
 import FormProgress from '@/Components/app/FormProgress.vue';
 import ErrorDialog from '@/Components/app/ErrorDialog.vue';
+import Notification from '@/Components/app/Notification.vue';
 
 const page = usePage();
 
@@ -66,6 +68,10 @@ const uploadFiles = (files) => {
         preserveScroll: true,
         onSuccess: () => {
             fileUploadForm.reset();
+            emitter.emit('show-notif', {
+                type: 'success',
+                message: `${files.length} ${files.length == 1 ? 'file' : 'files'} uploaded successfully`,
+            });
         },
         onError: (errors) => {
             let msg = '';

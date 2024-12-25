@@ -32,10 +32,9 @@
 <script setup>
 // Imports
 import { ref } from 'vue';
-import ConfirmationDialog from '@/Components/ConfirmationDialog.vue'
+import ConfirmationDialog from '@/Components/ConfirmationDialog.vue';
 import { useForm, usePage } from '@inertiajs/vue3';
 import { emitter } from '@/event-bus';
-
 
 // Uses
 const page = usePage();
@@ -70,7 +69,7 @@ const emit = defineEmits(['delete']);
 
 function onDeleteClick() {
     if (!props.deleteAll && !props.deleteIds?.length) {
-        emitter.emit('show-error','Please select at least one file to delete');
+        emitter.emit('show-error', 'Please select at least one file to delete');
         return;
     }
     showDeleteDialog.value = true;
@@ -92,7 +91,10 @@ function onDeleteConfirm() {
         onSuccess: () => {
             showDeleteDialog.value = false;
             emit('delete');
-            // showSuccessNotification('Selected files have been deleted');
+            emitter.emit('show-notif', {
+                type: 'warning',
+                message: 'Files deleted successfully',
+            });
         },
     });
 
