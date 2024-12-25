@@ -1,7 +1,7 @@
 <template>
     <button
-        @click="onDeleteClick"
-        class="inline-flex items-center rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:text-blue-700 focus:ring-2 focus:ring-blue-700 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 dark:hover:text-white dark:focus:text-white dark:focus:ring-blue-500"
+        @click="onClick"
+        class="mr-2 inline-flex items-center rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:text-blue-700 focus:ring-2 focus:ring-blue-700 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 dark:hover:text-white dark:focus:text-white dark:focus:ring-blue-500"
     >
         <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -21,10 +21,10 @@
     </button>
 
     <ConfirmationDialog
-        :show="showDeleteDialog"
-        message="Are you sure you want to delete selected files?"
-        @cancel="onDeleteCancel"
-        @confirm="onDeleteConfirm"
+        :show="showConfirmationDialog"
+        message="Are you sure you want to delete selected files permanently?"
+        @cancel="onCancel"
+        @confirm="onConfirm"
     >
     </ConfirmationDialog>
 </template>
@@ -38,68 +38,65 @@ import { emitter } from '@/event-bus';
 
 // Uses
 const page = usePage();
-const deleteFilesForm = useForm({
+const form = useForm({
     all: null,
     ids: [],
-    parent_id: null,
 });
 
 // Refs
 
-const showDeleteDialog = ref(false);
+const showConfirmationDialog = ref(false);
 
 // Props & Emit
 
 const props = defineProps({
-    deleteAll: {
+    allSelected: {
         type: Boolean,
         required: false,
         default: false,
     },
-    deleteIds: {
+    selectedIds: {
         type: Array,
         required: false,
     },
 });
-const emit = defineEmits(['delete']);
+const emit = defineEmits(['restore']);
 
 // Computed
 
 // Methods
 
-function onDeleteClick() {
-    if (!props.deleteAll && !props.deleteIds?.length) {
-        emitter.emit('show-error', 'Please select at least one file to delete');
+function onClick() {
+    if (!props.allSelected && !props.selectedIds.length) {
+        emitter.emit('show-error', 'Please select files to delete');
         return;
     }
-    showDeleteDialog.value = true;
+    showConfirmationDialog.value = true;
 }
 
-function onDeleteCancel() {
-    showDeleteDialog.value = false;
+function onCancel() {
+    showConfirmationDialog.value = false;
 }
 
-function onDeleteConfirm() {
-    deleteFilesForm.parent_id = page.props.folder.id;
-    if (props.deleteAll) {
-        deleteFilesForm.all = true;
-        deleteFilesForm.ids = [];
+function onConfirm() {
+    if (props.allSelected) {
+        form.all = true;
+        form.ids = [];
     } else {
-        deleteFilesForm.ids = props.deleteIds;
+        form.all = false;
+        form.ids = props.selectedIds;
     }
 
-    deleteFilesForm.delete(route('file.delete'), {
+    form.delete(route('file.delete_forever'), {
         onSuccess: () => {
-            showDeleteDialog.value = false;
-            emit('delete');
+            showConfirmationDialog.value = false;
+            emit('restore');
             emitter.emit('show-notif', {
                 type: 'warning',
-                message: 'Files deleted successfully',
+                message: 'Files deleted  successfully',
             });
         },
     });
-
-    console.log('Delete', props.deleteAll, props.deleteIds);
 }
 
 // Hooks
