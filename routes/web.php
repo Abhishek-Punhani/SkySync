@@ -20,6 +20,7 @@ Route::controller(Filecontroller::class)
         Route::get('/my-files/{folder?}', 'myFiles')
             ->where('folder', '(.*)')
             ->name('myFiles');
+        Route::get('/starred-files', 'starredFiles')->name('starredFiles');
         Route::get('/trash', 'trash')->name('trash');
         Route::post('/folder/create', 'createFolder')->name('folder.create');
         Route::post('/file', 'store')->name('file.store');
@@ -27,6 +28,7 @@ Route::controller(Filecontroller::class)
         Route::delete('/file/delete_forever', 'delete_forever')->name('file.delete_forever');
         Route::post('/file/restore', 'restore')->name('file.restore');
         Route::get('/file/download', 'download')->name('file.download');
+        Route::post('/file/add-to-favorites', 'addtoFavorites')->name('file.addtoFavorites');
     });
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');

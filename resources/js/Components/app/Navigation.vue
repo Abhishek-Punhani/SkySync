@@ -18,6 +18,11 @@
                 >
                 <NavLink href="/">Shared with me</NavLink>
                 <NavLink href="/">Shared by me</NavLink>
+                <NavLink
+                    href="/starred-files"
+                    :active="$page.url == '/starred-files'"
+                    >Starred Files
+                </NavLink>
                 <NavLink :href="route('trash')" :active="$page.url === '/trash'"
                     >Trash</NavLink
                 >

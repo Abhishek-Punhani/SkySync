@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\FilesActionRequest;
+use App\Http\Requests\ModifyFavRequest;
 use App\Http\Requests\StoreFileRequest;
 use App\Http\Requests\StoreFolderRequest;
 use App\Http\Requests\TrashFileActionRequest;
 use App\Http\Resources\FileResource;
 use App\Models\File;
+use App\Models\StarredFiles;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
@@ -27,10 +30,12 @@ class Filecontroller extends Controller
         if (!$folder)
             $folder = $this->getRoot();
         $files = File::query()
+            ->with('starred')
             ->where('parent_id', $folder->id)
             ->where('created_by', Auth::id())
             ->orderBy('is_folder', 'desc')
             ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc')
             ->paginate(10);
 
         $files = FileResource::collection($files);
@@ -58,6 +63,29 @@ class Filecontroller extends Controller
 
 
         return Inertia::render('Trash', compact('files'));
+    }
+
+    public function starredFiles(Request $request)
+    {
+        $starred_files = StarredFiles::query()
+            ->where('user_id', Auth::id());
+        $file_ids = $starred_files->pluck('file_id')->toArray();
+
+        $files = File::query()
+            ->whereIn('id', $file_ids)
+            ->with('starred')
+            ->where('created_by', Auth::id())
+            ->orderBy('is_folder', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc')
+            ->paginate(10);
+
+        $files = FileResource::collection($files);
+        if ($request->wantsJson()) {
+            return response()->json($files);
+        }
+
+        return Inertia::render('StarredFiles', compact('files'));
     }
     public function createFolder(StoreFolderRequest $request)
     {
@@ -302,5 +330,31 @@ class Filecontroller extends Controller
         }
 
         return to_route('trash');
+    }
+
+    public function addtoFavorites(ModifyFavRequest $request)
+    {
+        $data = $request->validated();
+        $id = $data['id'] ?? null;
+
+        $file = File::find($id);
+
+        if (!$id || !$file) {
+            return [
+                'message' => 'Something went wrong.'
+            ];
+        }
+        $starred_file = StarredFiles::query()->where('file_id', $file->id)->where('user_id', Auth::id())->first();
+        if (!$starred_file) {
+            StarredFiles::create([
+                'file_id' => $file->id,
+                'user_id' => Auth::id(),
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now()
+            ]);
+        } else {
+            $starred_file->delete();
+        }
+        return redirect()->back()->with('success', 'Files added to favorites successfully.');
     }
 }
