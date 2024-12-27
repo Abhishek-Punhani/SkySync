@@ -1,41 +1,41 @@
 <template>
-    <modal :show="modelValue" @show="onShow" max-width="sm">
+    <modal :show="props.modelValue" @show="onShow" max-width="sm">
         <div class="p-6">
             <h2 class="text-lg font-medium text-gray-900 dark:text-gray-200">
-                Create New Folder
+                Share Files
             </h2>
             <div class="mt-6">
                 <InputLabel
-                    for="folderName"
-                    value="Folder Name"
+                    for="shareEmail"
+                    value="Enter Email Addresses"
                     class="sr-only"
                 />
 
                 <TextInput
                     type="text"
-                    ref="folderNameInput"
-                    id="folderName"
-                    v-model="form.name"
+                    ref="emailInput"
+                    id="shareEmail"
+                    v-model="form.email"
                     class="mt-1 block w-full"
                     :class="
-                        form.errors.name
+                        form.errors.email
                             ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
                             : ''
                     "
-                    placeholder="Folder Name"
-                    @keyup.enter="createFolder"
+                    placeholder="Enter email addresses"
+                    @keyup.enter="share"
                 />
-                <InputError :message="form.errors.name" class="mt-2" />
+                <InputError :message="form.errors.email" class="mt-2" />
             </div>
             <div class="mt-6 flex justify-end">
                 <SecondaryButton @click="closeModal">Cancel</SecondaryButton>
                 <PrimaryButton
                     class="ml-3"
                     :class="{ 'opacity-25': form.processing }"
-                    @click="createFolder"
+                    @click="share"
                     :disable="form.processing"
                 >
-                    Submit
+                    Share
                 </PrimaryButton>
             </div>
         </div>
@@ -53,22 +53,27 @@ import SecondaryButton from '@/Components/SecondaryButton.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import { nextTick, ref } from 'vue';
 import { emitter } from '@/event-bus';
-// import { showSuccessNotification } from '@/event-bus.js';
 
 // Uses
 const form = useForm({
-    name: '',
+    email: null,
+    all: false,
+    ids: [],
     parent_id: null,
 });
 
 // Refs
-const folderNameInput = ref(null);
+const emailInput = ref(null);
 
 // Props & Emit
-const { modelValue, closeDropdown } = defineProps({
+const props = defineProps({
     modelValue: Boolean,
-    closeDropdown: Function,
+    allSelected: Boolean,
+    selectedIds: Array,
 });
+
+const modelValue = ref(props.modelValue);
+
 const emit = defineEmits(['update:modelValue']);
 const page = usePage();
 
@@ -76,32 +81,38 @@ const page = usePage();
 
 // Methods
 function onShow() {
-    nextTick(() => folderNameInput.value.focus());
+    nextTick(() => emailInput.value.focus());
 }
 
-function createFolder() {
+function share() {
     form.parent_id = page.props.folder.id;
-    const name = form.name.trim();
-    form.post(route('folder.create'), {
+    if (props.allSelected) {
+        form.all = true;
+        form.ids = [];
+    } else {
+        form.ids = props.selectedIds;
+        form.all = false;
+    }
+    form.post(route('file.share'), {
         preserveScroll: true,
         onSuccess: () => {
             closeModal();
+            // Show success notification
             emitter.emit('show-notif', {
-                message: `The folder "${name}" was created`,
+                message: `Selected files were shared`,
                 type: 'success',
             });
             form.reset();
-            closeDropdown();
         },
         onError: (e) => {
-            folderNameInput.value.focus();
+            emailInput.value.focus();
             console.log(e);
         },
     });
 }
 
 function closeModal() {
-    emit('update:modelValue');
+    emit('update:modelValue', false);
     form.clearErrors();
     form.reset();
 }

@@ -41,6 +41,10 @@
                 </li>
             </ol>
             <div>
+                <ShareFilesBtn
+                    :all-selected="allselected"
+                    :selected-ids="selectedIds"
+                />
                 <DownloadFilesButton
                     :all="allselected"
                     :ids="selectedIds"
@@ -175,7 +179,7 @@
                     <tr>
                         <td
                             class="text-md px-6 py-4 text-center font-medium text-gray-900 dark:text-gray-100"
-                            colspan="4"
+                            colspan="6"
                         >
                             No files found
                         </td>
@@ -200,6 +204,7 @@ import { all } from 'axios';
 import DeleteFilesButton from '@/Components/app/DeleteFilesButton.vue';
 import DownloadFilesButton from '@/Components/app/DownloadFilesButton.vue';
 import { emitter } from '@/event-bus';
+import ShareFilesBtn from '@/Components/app/ShareFilesBtn.vue';
 const props = defineProps({
     files: {
         type: Object,
@@ -295,7 +300,10 @@ function addRemoveFav(file) {
         },
     });
 }
-
+function clearSelection(event) {
+    allselected.value = false;
+    selectedFiles.value = {};
+}
 onUpdated(() => {
     allFiles.value = {
         data: props.files.data,

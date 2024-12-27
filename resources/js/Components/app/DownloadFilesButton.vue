@@ -23,7 +23,7 @@
 
 <script setup>
 // Imports
-import { useForm, usePage } from '@inertiajs/vue3'; 
+import { useForm, usePage } from '@inertiajs/vue3';
 import { getFiles } from '@/utils/http';
 
 // Uses
@@ -42,6 +42,8 @@ const props = defineProps({
         type: Array,
         required: false,
     },
+    sharedWithMe:false,
+    sharedByMe:false,
 });
 
 // Computed
@@ -67,7 +69,11 @@ function download() {
     }
 
     let url = route('file.download');
-    console.log(url);
+    if(props.sharedWithMe){
+        url=route('file.downloadSharedWithMe');
+    }else if(props.sharedByMe){
+        url=route('file.downloadSharedByMe');
+    }
 
     getFiles(url + '?' + p.toString()).then((res) => {
         console.log(res);
