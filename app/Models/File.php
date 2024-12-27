@@ -27,10 +27,22 @@ class File extends Model
     public function get_file_size()
     {
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        $file_size = $this->is_folder ? $this->get_folder_size($this) : $this->size;
+        $power = $file_size > 0 ? floor(log($file_size, 1024)) : 0;
 
-        $power = $this->size > 0 ? floor(log($this->size, 1024)) : 0;
-
-        return number_format($this->size / pow(1024, $power), 2, '.', ',') . ' ' . $units[$power];
+        return number_format($file_size / pow(1024, $power), 2, '.', ',') . ' ' . $units[$power];
+    }
+    private function get_folder_size($folder)
+    {
+        $size = 0;
+        foreach ($folder->children as $child) {
+            if ($child->is_folder) {
+                $size += $this->get_folder_size($child);
+            } else {
+                $size += $child->size;
+            }
+        }
+        return $size;
     }
 
     public function parent(): BelongsTo
@@ -117,5 +129,25 @@ class File extends Model
                 Storage::delete($file->storage_path);
             }
         }
+    }
+    public static function getSharedWithMe()
+    {
+        return File::query()
+            ->select('files.*')
+            ->join('file_shares', 'file_shares.file_id', 'files.id')
+            ->where('file_shares.user_id', Auth::id())
+            ->orderBy('file_shares.created_at', 'desc')
+            ->orderBy('files.id', 'desc');
+    }
+
+    public static function getSharedByMe()
+    {
+        return File::query()
+            ->select('files.*')
+            ->join('file_shares', 'file_shares.file_id', 'files.id')
+            ->where('files.created_by', Auth::id())
+            ->orderBy('file_shares.created_at', 'desc')
+            ->orderBy('files.id', 'desc')
+        ;
     }
 }
