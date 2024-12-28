@@ -27,7 +27,7 @@ class Filecontroller extends Controller
 {
     public function myFiles(Request $request, string $folder = null)
     {
-
+        $search = $request->get("search") ?? false;
 
         if ($folder) {
             $folder = File::query()->where('created_by', Auth::id())
@@ -35,15 +35,25 @@ class Filecontroller extends Controller
         }
         if (!$folder)
             $folder = $this->getRoot();
-        $files = File::query()
+        $query = File::query()
+            ->select('files.*')
             ->with('starred')
-            ->where('parent_id', $folder->id)
             ->where('created_by', Auth::id())
+            ->where('_lft', '!=', 1)
             ->orderBy('is_folder', 'desc')
-            ->orderBy('created_at', 'desc')
-            ->orderBy('id', 'desc')
-            ->paginate(10);
+            ->orderBy('files.created_at', 'desc')
+            ->orderBy('files.id', 'desc');
 
+        if ($search) {
+            $query->where('name', 'like', "%$search%");
+            $search = true;
+        } else {
+            $query->where('parent_id', $folder->id);
+        }
+
+
+
+        $files = $query->paginate(10);
         $files = FileResource::collection($files);
 
         if ($request->wantsJson()) {
@@ -52,17 +62,22 @@ class Filecontroller extends Controller
 
         $ancestors = FileResource::collection([...$folder->ancestors, $folder]);
         $folder = new FileResource($folder);
-        return Inertia::render('MyFiles', compact('files', 'folder', 'ancestors'));
+        return Inertia::render('MyFiles', compact('files', 'folder', 'ancestors', 'search'));
     }
 
     public function trash(Request $request)
     {
-        $files = File::onlyTrashed()
+
+        $search = $request->get("search") ?? false;
+        $query = File::onlyTrashed()
             ->where('created_by', Auth::id())
             ->orderBy('is_folder', 'desc')
-            ->orderBy('deleted_at', 'desc')
-            ->paginate(10);
+            ->orderBy('deleted_at', 'desc');
 
+        if ($search) {
+            $query->where('name', 'like', "%$search%");
+        }
+        $files = $query->paginate(10);
         if ($request->wantsJson()) {
             return response()->json($files);
         }
@@ -399,10 +414,12 @@ class Filecontroller extends Controller
 
     public function sharedWithMe(Request $request)
     {
-
+        $search = $request->get("search") ?? false;
         $query = File::getSharedWithMe();
 
-
+        if ($search) {
+            $query->where('name', 'like', "%$search%");
+        }
 
         $files = $query->paginate(10);
 
@@ -417,11 +434,13 @@ class Filecontroller extends Controller
 
     public function sharedByMe(Request $request)
     {
-
+        $search = $request->get("search") ?? false;
         $query = File::getSharedByMe();
 
 
-
+        if ($search) {
+            $query->where('name', 'like', "%$search%");
+        }
         $files = $query->paginate(10);
         $files = FileResource::collection($files);
 

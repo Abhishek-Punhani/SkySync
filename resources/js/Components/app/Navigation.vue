@@ -1,3 +1,4 @@
+route_name
 <template>
     <nav class="min-w-[200px] p-5 dark:text-gray-200">
         <Link :href="route('dashboard')">
@@ -13,25 +14,25 @@
             <div class="mt-5 flex flex-col gap-y-2 py-3">
                 <NavLink
                     :href="route('myFiles')"
-                    :active="$page.url === '/my-files'"
+                    :active="$page.props.route_name === 'myFiles'"
                     >My Files</NavLink
                 >
                 <NavLink
                     :href="route('sharedWithMe')"
-                    :active="$page.url == '/shared-with-me'"
+                    :active="$page.props.route_name == 'sharedWithMe'"
                     >Shared with me</NavLink
                 >
                 <NavLink
                     :href="route('sharedByMe')"
-                    :active="$page.url == '/shared-by-me'"
+                    :active="$page.props.route_name == 'sharedByMe'"
                     >Shared by me</NavLink
                 >
                 <NavLink
                     href="/starred-files"
-                    :active="$page.url == '/starred-files'"
+                    :active="$page.props.route_name == 'starredFiles'"
                     >Starred Files
                 </NavLink>
-                <NavLink :href="route('trash')" :active="$page.url === '/trash'"
+                <NavLink :href="route('trash')" :active="$page.url === 'trash'"
                     >Trash</NavLink
                 >
             </div>

@@ -1,4 +1,5 @@
 <template>
+    <pre class="text-white">{{ props.allFiles }}</pre>
     <AuthenticatedLayout>
         <nav class="mb-3 flex items-center justify-between p-1">
             <ol class="inline-flex items-center space-x-1 md:space-x-3">
@@ -85,6 +86,12 @@
                             Owner
                         </th>
                         <th
+                            v-if="props.search"
+                            class="px-6 py-4 text-left text-sm font-medium text-gray-900 dark:text-gray-100"
+                        >
+                            Path
+                        </th>
+                        <th
                             class="px-6 py-4 text-left text-sm font-medium text-gray-900 dark:text-gray-100"
                         >
                             Last Modified
@@ -164,6 +171,12 @@
                             {{ file.owner }}
                         </td>
                         <td
+                            v-if="props.search"
+                            class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100"
+                        >
+                            {{ file.path }}
+                        </td>
+                        <td
                             class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100"
                         >
                             {{ file.updated_at }}
@@ -212,11 +225,14 @@ const props = defineProps({
     },
     folder: Object,
     ancestors: Object,
+    search: Boolean,
 });
+
+const search = ref(null);
 
 const allFiles = ref({
     data: props.files.data,
-    next: props.files.links.next,
+    next: props.files?.links?.next,
 });
 const loadMoreIntersect = ref(null);
 const allselected = ref(false);
@@ -258,8 +274,10 @@ function ToggleCheckbox(file) {
 }
 
 function loadMore() {
-    console.log('load more');
-    if (allFiles.value.next == null) return;
+    if (allFiles.value?.next == null || props.search) {
+        console.log(search);
+        return;
+    }
 
     getFiles(allFiles.value.next).then((res) => {
         allFiles.value.data = [...allFiles.value.data, ...res.data];
@@ -304,12 +322,14 @@ function clearSelection(event) {
     allselected.value = false;
     selectedFiles.value = {};
 }
+
 onUpdated(() => {
     allFiles.value = {
         data: props.files.data,
         next: props.files.links.next,
     };
 });
+
 onMounted(() => {
     const observer = new IntersectionObserver(
         (entries) =>
