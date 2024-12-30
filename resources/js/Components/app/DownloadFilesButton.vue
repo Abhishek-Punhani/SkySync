@@ -42,8 +42,8 @@ const props = defineProps({
         type: Array,
         required: false,
     },
-    sharedWithMe:false,
-    sharedByMe:false,
+    sharedWithMe: false,
+    sharedByMe: false,
 });
 
 // Computed
@@ -69,19 +69,19 @@ function download() {
     }
 
     let url = route('file.download');
-    if(props.sharedWithMe){
-        url=route('file.downloadSharedWithMe');
-    }else if(props.sharedByMe){
-        url=route('file.downloadSharedByMe');
+    if (props.sharedWithMe) {
+        url = route('file.downloadSharedWithMe');
+    } else if (props.sharedByMe) {
+        url = route('file.downloadSharedByMe');
     }
 
     getFiles(url + '?' + p.toString()).then((res) => {
         console.log(res);
-        if (!res.url) return;
+        if (!res.data.url) return;
 
         const a = document.createElement('a');
-        a.download = res.filename;
-        a.href = res.url;
+        a.download = res.data.filename;
+        a.href = res.data.url;
         a.click();
     });
 }

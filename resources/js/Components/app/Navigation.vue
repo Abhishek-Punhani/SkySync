@@ -32,7 +32,9 @@ route_name
                     :active="$page.props.route_name == 'starredFiles'"
                     >Starred Files
                 </NavLink>
-                <NavLink :href="route('trash')" :active="$page.url === 'trash'"
+                <NavLink
+                    :href="route('trash')"
+                    :active="$page.props.route_name === 'trash'"
                     >Trash</NavLink
                 >
             </div>
