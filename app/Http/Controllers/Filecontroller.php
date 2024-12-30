@@ -535,23 +535,15 @@ class Filecontroller extends Controller
                 $url = $this->createZip($file->children);
                 $filename = $file->name . '.zip';
             } else {
+                $dest = pathinfo($file->storage_path, PATHINFO_BASENAME);
                 if ($file->uploaded_on_cloud) {
-                    $dest = pathinfo($file->storage_path, PATHINFO_BASENAME);
-
                     $content = Storage::get($file->storage_path);
-
-                    Storage::disk('public')->put($dest, $content);
-
-                    $url = asset(Storage::disk('public')->url($dest));
-                    $filename = $file->name;
                 } else {
-                    $dest = 'public/' . pathinfo(($file->storage_path), PATHINFO_BASENAME);
-                    Storage::disk('public')->put($dest, Storage::disk('local')->get($file->storage_path));
-                    Storage::disk('public')->copy($file->storage_path, $dest);
-
-                    $url = asset(Storage::disk('public')->url($dest));
-                    $filename = $file->name;
+                    $content = Storage::disk('local')->get($file->storage_path);
                 }
+                Storage::disk('public')->put($dest, $content);
+                $url = asset(Storage::disk('public')->url($dest));
+                $filename = $file->name;
             }
         } else {
             $files = File::query()->whereIn('id', $ids)->get();
